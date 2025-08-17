@@ -1,16 +1,27 @@
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Navigation from "@/components/Navigation";
 import StatsCard from "@/components/StatsCard";
-import StatusBadge from "@/components/StatusBadge";
-import { AlertTriangle, TrendingUp, Users, Clock, Filter, Search, MapPin } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import IssueDetailModal from "@/components/IssueDetailModal";
+import FilterSidebar from "@/components/FilterSidebar";
+import IssuesList from "@/components/IssuesList";
+import MapView from "@/components/MapView";
+import MobileFilterDrawer from "@/components/MobileFilterDrawer";
+import { AlertTriangle, TrendingUp, Users, Clock, Map, List, Menu } from "lucide-react";
 
 const Dashboard = () => {
-  const [filterCategory, setFilterCategory] = useState("all");
-  const [filterStatus, setFilterStatus] = useState("all");
+  const [selectedIssue, setSelectedIssue] = useState<any>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [highlightedIssueId, setHighlightedIssueId] = useState<number | null>(null);
+  const [filters, setFilters] = useState({
+    search: "",
+    category: "all",
+    status: "all",
+    location: "all", 
+    dateRange: "all",
+  });
+  const [viewMode, setViewMode] = useState<"list" | "map">("list"); // Mobile view toggle
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   // Mock data for demo - in real app this would come from Supabase
   const issues = [
@@ -61,49 +72,89 @@ const Dashboard = () => {
   ];
 
   const filteredIssues = issues.filter((issue) => {
-    const categoryMatch = filterCategory === "all" || issue.category === filterCategory;
-    const statusMatch = filterStatus === "all" || issue.status === filterStatus;
-    return categoryMatch && statusMatch;
+    const searchMatch = filters.search === "" || 
+      issue.title.toLowerCase().includes(filters.search.toLowerCase()) ||
+      issue.description.toLowerCase().includes(filters.search.toLowerCase()) ||
+      issue.location.toLowerCase().includes(filters.search.toLowerCase());
+    const categoryMatch = filters.category === "all" || issue.category === filters.category;
+    const statusMatch = filters.status === "all" || issue.status === filters.status;
+    const locationMatch = filters.location === "all" || issue.location.includes(filters.location);
+    
+    return searchMatch && categoryMatch && statusMatch && locationMatch;
   });
+
+  const handleIssueClick = (issue: any) => {
+    setSelectedIssue(issue);
+    setIsDetailModalOpen(true);
+  };
+
+  const handleMapHighlight = (issueId: number) => {
+    setHighlightedIssueId(issueId);
+  };
+
+  const handleFilterChange = (newFilters: any) => {
+    setFilters(newFilters);
+  };
+
+  const activeFilterCount = Object.values(filters).filter(value => value !== "all" && value !== "").length;
 
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
       
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-6">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-foreground mb-2">Civic Issues Dashboard</h1>
-          <p className="text-lg text-muted-foreground">
-            Real-time monitoring and intelligent prioritization of city issues
-          </p>
+        <div className="mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h1 className="text-3xl font-bold text-foreground mb-2">Civic Issues Dashboard</h1>
+              <p className="text-muted-foreground">
+                Real-time monitoring and intelligent prioritization of city issues
+              </p>
+            </div>
+            
+            {/* Mobile Controls */}
+            <div className="flex items-center space-x-2 sm:hidden">
+              <MobileFilterDrawer 
+                onFilterChange={handleFilterChange} 
+                activeFilterCount={activeFilterCount}
+              />
+              <Button 
+                variant="outline" 
+                onClick={() => setViewMode(viewMode === "list" ? "map" : "list")}
+              >
+                {viewMode === "list" ? <Map className="w-4 h-4 mr-2" /> : <List className="w-4 h-4 mr-2" />}
+                {viewMode === "list" ? "Map" : "List"}
+              </Button>
+            </div>
+          </div>
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <StatsCard
-            title="Total Active Issues"
+            title="Active Issues"
             value="1,247"
             change="+8.2%"
             trend="up"
             icon={AlertTriangle}
           />
           <StatsCard
-            title="Avg Response Time"
+            title="Avg Response"
             value="4.2hrs"
             change="-12%"
             trend="down"
             icon={Clock}
           />
           <StatsCard
-            title="Issues Resolved Today"
+            title="Resolved Today"
             value="89"
             change="+15%"
             trend="up"
             icon={TrendingUp}
           />
           <StatsCard
-            title="Citizens Reporting"
+            title="Citizens Active"
             value="2,134"
             change="+5%"
             trend="up"
@@ -111,123 +162,99 @@ const Dashboard = () => {
           />
         </div>
 
-        {/* Filters and Search */}
-        <Card className="mb-6 bg-gradient-card border-border/50">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Filter className="w-5 h-5" />
-              <span>Filter & Search Issues</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="flex-1">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                  <Input 
-                    placeholder="Search issues by title, location, or description..." 
-                    className="pl-10"
-                  />
-                </div>
+        {/* Main Content - Desktop Layout */}
+        <div className="hidden lg:grid lg:grid-cols-12 gap-6 h-[calc(100vh-280px)]">
+          {/* Left Sidebar - Filters */}
+          <div className={`${sidebarCollapsed ? 'lg:col-span-1' : 'lg:col-span-3'} transition-all duration-300`}>
+            {!sidebarCollapsed && (
+              <div className="h-full overflow-y-auto">
+                <FilterSidebar onFilterChange={handleFilterChange} />
               </div>
-              
-              <Select value={filterCategory} onValueChange={setFilterCategory}>
-                <SelectTrigger className="sm:w-48">
-                  <SelectValue placeholder="Category" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
-                  <SelectItem value="Infrastructure">Infrastructure</SelectItem>
-                  <SelectItem value="Utilities">Utilities</SelectItem>
-                  <SelectItem value="Public Safety">Public Safety</SelectItem>
-                  <SelectItem value="Vandalism">Vandalism</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Select value={filterStatus} onValueChange={setFilterStatus}>
-                <SelectTrigger className="sm:w-48">
-                  <SelectValue placeholder="Priority" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Priorities</SelectItem>
-                  <SelectItem value="urgent">Urgent</SelectItem>
-                  <SelectItem value="high">High</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="low">Low</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Issues List */}
-        <div className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h2 className="text-2xl font-semibold text-foreground">
-              Active Issues ({filteredIssues.length})
-            </h2>
-            <Button variant="outline">
-              Export Data
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+              className="mt-2 w-full"
+            >
+              <Menu className="w-4 h-4" />
             </Button>
           </div>
 
-          {filteredIssues.map((issue) => (
-            <Card key={issue.id} className="bg-gradient-card border-border/50 hover:shadow-card transition-all duration-300">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-2">
-                      <h3 className="text-lg font-semibold text-foreground">{issue.title}</h3>
-                      <StatusBadge status={issue.status} />
-                      <div className="px-2 py-1 bg-primary/20 rounded text-xs font-medium text-primary">
-                        Score: {issue.urgencyScore}
-                      </div>
-                    </div>
-                    
-                    <p className="text-muted-foreground mb-3">{issue.description}</p>
-                    
-                    <div className="flex items-center text-sm text-muted-foreground space-x-4">
-                      <span className="flex items-center">
-                        <MapPin className="w-4 h-4 mr-1" />
-                        {issue.location}
-                      </span>
-                      <span className="px-2 py-1 bg-secondary rounded-sm">
-                        {issue.category}
-                      </span>
-                      <span>
-                        Reported by {issue.reportedBy}
-                      </span>
-                      <span>
-                        {new Date(issue.createdAt).toLocaleDateString()}
-                      </span>
-                    </div>
-                  </div>
-                  
-                  <div className="flex space-x-2 ml-4">
-                    <Button size="sm" variant="outline">
-                      View Details
-                    </Button>
-                    <Button size="sm" className="bg-primary hover:bg-primary/90">
-                      Take Action
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+          {/* Middle - Issues List */}
+          <div className={`${sidebarCollapsed ? 'lg:col-span-5' : 'lg:col-span-4'} transition-all duration-300`}>
+            <div className="h-full overflow-hidden flex flex-col">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold text-foreground">
+                  Issues ({filteredIssues.length})
+                </h2>
+                <Button variant="outline" size="sm">
+                  Export
+                </Button>
+              </div>
+              
+              <div className="flex-1 overflow-y-auto">
+                <IssuesList 
+                  issues={filteredIssues}
+                  onIssueClick={handleIssueClick}
+                  onMapHighlight={handleMapHighlight}
+                  selectedIssueId={highlightedIssueId}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Right - Map */}
+          <div className={`${sidebarCollapsed ? 'lg:col-span-6' : 'lg:col-span-5'} transition-all duration-300`}>
+            <MapView 
+              issues={filteredIssues}
+              onIssueSelect={handleIssueClick}
+              highlightedIssueId={highlightedIssueId}
+            />
+          </div>
         </div>
 
-        {filteredIssues.length === 0 && (
-          <Card className="bg-gradient-card border-border/50">
-            <CardContent className="p-12 text-center">
-              <AlertTriangle className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-foreground mb-2">No Issues Found</h3>
-              <p className="text-muted-foreground">
-                Try adjusting your filters to see more issues.
-              </p>
-            </CardContent>
-          </Card>
-        )}
+        {/* Mobile Layout */}
+        <div className="lg:hidden">
+          {viewMode === "list" ? (
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <h2 className="text-xl font-semibold text-foreground">
+                  Issues ({filteredIssues.length})
+                </h2>
+                <Button variant="outline" size="sm">
+                  Export
+                </Button>
+              </div>
+              
+              <IssuesList 
+                issues={filteredIssues}
+                onIssueClick={handleIssueClick}
+                onMapHighlight={handleMapHighlight}
+                selectedIssueId={highlightedIssueId}
+              />
+            </div>
+          ) : (
+            <div className="h-[70vh]">
+              <MapView 
+                issues={filteredIssues}
+                onIssueSelect={handleIssueClick}
+                highlightedIssueId={highlightedIssueId}
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Issue Detail Modal */}
+        <IssueDetailModal
+          issue={selectedIssue}
+          isOpen={isDetailModalOpen}
+          onClose={() => {
+            setIsDetailModalOpen(false);
+            setSelectedIssue(null);
+          }}
+          isAdmin={false} // TODO: Connect to auth system
+        />
       </div>
     </div>
   );

@@ -1,187 +1,160 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import Navigation from "@/components/Navigation";
-import StatsCard from "@/components/StatsCard";
-import StatusBadge from "@/components/StatusBadge";
-import { AlertTriangle, TrendingUp, Users, MapPin, FileText, BarChart3 } from "lucide-react";
+import { AlertTriangle, BarChart3, UserPlus, LogIn, MapPin, TrendingUp, Users, Clock } from "lucide-react";
 import { Link } from "react-router-dom";
 import heroImage from "@/assets/hero-city.jpg";
 
 const Home = () => {
-  // Mock data for demo
-  const recentIssues = [
-    { id: 1, title: "Pothole on Main Street", category: "Infrastructure", status: "urgent" as const, location: "Downtown", time: "2 hours ago" },
-    { id: 2, title: "Broken streetlight", category: "Utilities", status: "high" as const, location: "Park Ave", time: "4 hours ago" },
-    { id: 3, title: "Noise complaint", category: "Public Safety", status: "medium" as const, location: "Residential Area", time: "6 hours ago" },
-  ];
-
   return (
     <div className="min-h-screen bg-background">
-      <Navigation />
-      
-      {/* Hero Section */}
-      <section className="relative overflow-hidden">
+      {/* Hero Section - Landing Page */}
+      <section className="relative overflow-hidden min-h-screen flex items-center justify-center">
         <div 
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{ backgroundImage: `url(${heroImage})` }}
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-background/90 to-background/60" />
+        <div className="absolute inset-0 bg-gradient-to-r from-background/95 to-background/70" />
         
-        <div className="relative container mx-auto px-4 py-20">
-          <div className="max-w-3xl">
-            <div className="flex items-center space-x-2 mb-6">
-              <div className="w-12 h-12 bg-gradient-hero rounded-xl flex items-center justify-center shadow-glow">
-                <AlertTriangle className="w-6 h-6 text-white" />
+        <div className="relative container mx-auto px-4 text-center">
+          <div className="max-w-4xl mx-auto">
+            {/* Logo & Badge */}
+            <div className="flex items-center justify-center space-x-3 mb-8">
+              <div className="w-16 h-16 bg-gradient-hero rounded-2xl flex items-center justify-center shadow-glow">
+                <AlertTriangle className="w-8 h-8 text-white" />
               </div>
-              <div className="px-3 py-1 bg-primary/20 rounded-full border border-primary/30">
-                <span className="text-sm font-medium text-primary">Hack Fest 2025</span>
+              <div className="px-4 py-2 bg-primary/20 rounded-full border border-primary/30">
+                <span className="text-sm font-medium text-primary">Hack Fest 2025 - Team Jarvis</span>
               </div>
             </div>
             
-            <h1 className="text-5xl font-bold text-foreground mb-6">
-              Welcome to <span className="text-transparent bg-clip-text bg-gradient-hero">CityPulse</span>
+            {/* Main Heading */}
+            <h1 className="text-6xl md:text-7xl font-bold text-foreground mb-6">
+              <span className="text-transparent bg-clip-text bg-gradient-hero">CityPulse</span>
             </h1>
-            <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
-              Real-time civic issue tracking and smart prioritization system. 
-              Monitor, report, and resolve community issues with AI-powered insights and predictive analytics.
+            <p className="text-xl md:text-2xl text-muted-foreground mb-4 leading-relaxed">
+              Real-time Civic Issue Dashboard
+            </p>
+            <p className="text-lg text-muted-foreground/80 mb-12 max-w-2xl mx-auto">
+              Monitor, report, and resolve community issues with AI-powered insights, 
+              smart prioritization, and predictive analytics for better city management.
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Button size="lg" className="bg-gradient-hero hover:opacity-90 text-white shadow-glow" asChild>
-                <Link to="/dashboard">
-                  <BarChart3 className="w-5 h-5 mr-2" />
-                  View Dashboard
-                </Link>
-              </Button>
-              <Button size="lg" variant="outline" className="border-primary text-primary hover:bg-primary/10" asChild>
-                <Link to="/report">
-                  <FileText className="w-5 h-5 mr-2" />
-                  Report an Issue
-                </Link>
-              </Button>
-            </div>
-          </div>
-        </div>
-      </section>
+            {/* Two Main Options */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-3xl mx-auto mb-16">
+              {/* Dashboard Option */}
+              <Card className="bg-gradient-card border-border/50 hover:shadow-card transition-all duration-500 group cursor-pointer">
+                <CardContent className="p-8 text-center">
+                  <div className="w-20 h-20 bg-gradient-hero rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-glow group-hover:scale-110 transition-transform duration-300">
+                    <BarChart3 className="w-10 h-10 text-white" />
+                  </div>
+                  <CardTitle className="text-2xl mb-4 text-foreground">Live Dashboard</CardTitle>
+                  <CardDescription className="text-muted-foreground mb-6 text-base">
+                    View real-time issues, interactive maps, and city statistics. 
+                    No login required - open access to community data.
+                  </CardDescription>
+                  <Button size="lg" className="bg-gradient-hero hover:opacity-90 text-white shadow-glow w-full" asChild>
+                    <Link to="/dashboard">
+                      <MapPin className="w-5 h-5 mr-2" />
+                      View Dashboard
+                    </Link>
+                  </Button>
+                </CardContent>
+              </Card>
 
-      {/* Stats Overview */}
-      <section className="py-16 bg-background/50">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12 text-foreground">
-            Real-time City Statistics
-          </h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <StatsCard
-              title="Active Issues"
-              value="1,247"
-              change="+12%"
-              trend="up"
-              icon={AlertTriangle}
-            />
-            <StatsCard
-              title="Resolved Today"
-              value="89"
-              change="+8%"
-              trend="up"
-              icon={TrendingUp}
-            />
-            <StatsCard
-              title="Citizens Engaged"
-              value="15,432"
-              change="+5%"
-              trend="up"
-              icon={Users}
-            />
-            <StatsCard
-              title="Response Time"
-              value="2.4hrs"
-              change="-15%"
-              trend="down"
-              icon={MapPin}
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* Recent Issues */}
-      <section className="py-16">
-        <div className="container mx-auto px-4">
-          <div className="flex justify-between items-center mb-8">
-            <h2 className="text-3xl font-bold text-foreground">Recent Issues</h2>
-            <Button variant="outline" asChild>
-              <Link to="/dashboard">View All Issues</Link>
-            </Button>
-          </div>
-          
-          <div className="grid gap-4">
-            {recentIssues.map((issue) => (
-              <Card key={issue.id} className="bg-gradient-card border-border/50 hover:shadow-card transition-all duration-300">
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-3 mb-2">
-                        <h3 className="font-semibold text-foreground">{issue.title}</h3>
-                        <StatusBadge status={issue.status} />
-                      </div>
-                      
-                      <div className="flex items-center text-sm text-muted-foreground space-x-4">
-                        <span className="flex items-center">
-                          <MapPin className="w-4 h-4 mr-1" />
-                          {issue.location}
-                        </span>
-                        <span>{issue.category}</span>
-                        <span>{issue.time}</span>
-                      </div>
-                    </div>
+              {/* Sign In/Sign Up Option */}
+              <Card className="bg-gradient-card border-border/50 hover:shadow-card transition-all duration-500 group cursor-pointer">
+                <CardContent className="p-8 text-center">
+                  <div className="w-20 h-20 bg-gradient-to-br from-accent to-primary rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-glow group-hover:scale-110 transition-transform duration-300">
+                    <UserPlus className="w-10 h-10 text-white" />
+                  </div>
+                  <CardTitle className="text-2xl mb-4 text-foreground">Join the Community</CardTitle>
+                  <CardDescription className="text-muted-foreground mb-6 text-base">
+                    Sign up to report issues, track your submissions, and help make your city better. 
+                    For citizens and city administrators.
+                  </CardDescription>
+                  <div className="space-y-3">
+                    <Button size="lg" variant="outline" className="w-full border-primary text-primary hover:bg-primary/10">
+                      <UserPlus className="w-5 h-5 mr-2" />
+                      Sign Up
+                    </Button>
+                    <Button size="lg" variant="ghost" className="w-full hover:bg-secondary">
+                      <LogIn className="w-5 h-5 mr-2" />
+                      Sign In
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
-            ))}
+            </div>
+
+            {/* Quick Stats */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto opacity-80">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-primary">1,247</div>
+                <div className="text-sm text-muted-foreground">Active Issues</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-success">89</div>
+                <div className="text-sm text-muted-foreground">Resolved Today</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-accent">15K+</div>
+                <div className="text-sm text-muted-foreground">Citizens</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-warning">2.4hrs</div>
+                <div className="text-sm text-muted-foreground">Avg Response</div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Features */}
-      <section className="py-16 bg-background/50">
+      {/* Features Section */}
+      <section className="py-24 bg-background/50">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12 text-foreground">
+          <h2 className="text-4xl font-bold text-center mb-4 text-foreground">
             Powered by AI & Real-time Data
           </h2>
+          <p className="text-xl text-center text-muted-foreground mb-16 max-w-3xl mx-auto">
+            Advanced technology stack with NLP processing, predictive analytics, and interactive visualizations
+          </p>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Card className="bg-gradient-card border-border/50">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <TrendingUp className="w-5 h-5 text-primary" />
-                  <span>Smart Prioritization</span>
-                </CardTitle>
-                <CardDescription>
-                  AI-powered NLP analysis automatically prioritizes issues based on urgency, impact, and community sentiment.
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            <Card className="bg-gradient-card border-border/50 hover:shadow-card transition-all duration-300">
+              <CardHeader className="text-center pb-4">
+                <div className="w-16 h-16 bg-gradient-to-br from-success to-success/70 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <TrendingUp className="w-8 h-8 text-white" />
+                </div>
+                <CardTitle className="text-xl">Smart Prioritization</CardTitle>
+                <CardDescription className="text-base leading-relaxed">
+                  AI-powered NLP analysis automatically prioritizes issues based on urgency, 
+                  impact, and community sentiment using spaCy and natural language processing.
                 </CardDescription>
               </CardHeader>
             </Card>
             
-            <Card className="bg-gradient-card border-border/50">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <MapPin className="w-5 h-5 text-primary" />
-                  <span>Interactive Heatmaps</span>
-                </CardTitle>
-                <CardDescription>
-                  Visual hotspot mapping with Leaflet.js integration showing issue density and patterns across the city.
+            <Card className="bg-gradient-card border-border/50 hover:shadow-card transition-all duration-300">
+              <CardHeader className="text-center pb-4">
+                <div className="w-16 h-16 bg-gradient-to-br from-accent to-accent/70 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <MapPin className="w-8 h-8 text-white" />
+                </div>
+                <CardTitle className="text-xl">Interactive Maps</CardTitle>
+                <CardDescription className="text-base leading-relaxed">
+                  Visual hotspot mapping with Leaflet.js integration, OpenStreetMap data, 
+                  and real-time heatmaps showing issue density and patterns across the city.
                 </CardDescription>
               </CardHeader>
             </Card>
             
-            <Card className="bg-gradient-card border-border/50">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <BarChart3 className="w-5 h-5 text-primary" />
-                  <span>Predictive Analytics</span>
-                </CardTitle>
-                <CardDescription>
-                  Advanced data visualization and predictive modeling to forecast trends and optimize resource allocation.
+            <Card className="bg-gradient-card border-border/50 hover:shadow-card transition-all duration-300">
+              <CardHeader className="text-center pb-4">
+                <div className="w-16 h-16 bg-gradient-to-br from-warning to-warning/70 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <BarChart3 className="w-8 h-8 text-white" />
+                </div>
+                <CardTitle className="text-xl">Predictive Analytics</CardTitle>
+                <CardDescription className="text-base leading-relaxed">
+                  Advanced data visualization with Chart.js, Twitter/X API integration, 
+                  and predictive modeling to forecast trends and optimize resource allocation.
                 </CardDescription>
               </CardHeader>
             </Card>
